@@ -1,0 +1,6 @@
+@Desafio.backend.Mottu_HostAddress = http://localhost:5100
+
+GET {{Desafio.backend.Mottu_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

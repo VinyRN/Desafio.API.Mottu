@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desafio.backend.Mottu", "Desafio.backend.Mottu\Desafio.backend.Mottu.csproj", "{BBC91DCB-C997-4014-818E-3677672EFF03}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desafio.backend.Mottu.Infraestrutura", "Desafio.backend.Mottu.Infra\Desafio.backend.Mottu.Infraestrutura.csproj", "{F0D55076-11C3-49A4-9312-9B03175E60C1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desafio.backend.Mottu.Dominio", "Desafio.backend.Mottu.Dominio\Desafio.backend.Mottu.Dominio.csproj", "{5605E162-DD3B-43AC-8E94-10E64537FB07}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desafio.backend.Mottu.Servico", "Desafio.backend.Mottu.Servico\Desafio.backend.Mottu.Servico.csproj", "{06423152-2B91-4D50-92ED-A121174B06CB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Desafio.backend.Mottu.Mappings", "Desafio.backend.Mottu.Mappings\Desafio.backend.Mottu.Mappings.csproj", "{2AB13BF8-AE18-46F8-8DB4-77F44EFFECC2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BBC91DCB-C997-4014-818E-3677672EFF03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBC91DCB-C997-4014-818E-3677672EFF03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBC91DCB-C997-4014-818E-3677672EFF03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBC91DCB-C997-4014-818E-3677672EFF03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0D55076-11C3-49A4-9312-9B03175E60C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0D55076-11C3-49A4-9312-9B03175E60C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0D55076-11C3-49A4-9312-9B03175E60C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0D55076-11C3-49A4-9312-9B03175E60C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5605E162-DD3B-43AC-8E94-10E64537FB07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5605E162-DD3B-43AC-8E94-10E64537FB07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5605E162-DD3B-43AC-8E94-10E64537FB07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5605E162-DD3B-43AC-8E94-10E64537FB07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06423152-2B91-4D50-92ED-A121174B06CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06423152-2B91-4D50-92ED-A121174B06CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06423152-2B91-4D50-92ED-A121174B06CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06423152-2B91-4D50-92ED-A121174B06CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AB13BF8-AE18-46F8-8DB4-77F44EFFECC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AB13BF8-AE18-46F8-8DB4-77F44EFFECC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AB13BF8-AE18-46F8-8DB4-77F44EFFECC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AB13BF8-AE18-46F8-8DB4-77F44EFFECC2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6975DCD7-D21C-4800-A3C3-496A4500C83B}
+	EndGlobalSection
+EndGlobal
