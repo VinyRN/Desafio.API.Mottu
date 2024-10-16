@@ -1,24 +1,25 @@
 ﻿using AutoMapper;
+using Desafio.backend.Mottu.Dominio.Dto;
+using Desafio.backend.Mottu.Dominio.Dto.EntregadorEvento;
 using Desafio.backend.Mottu.Dominio.Dto.Request;
 using Desafio.backend.Mottu.Dominio.Entidades;
 using Desafio.backend.Mottu.Dominio.Interfaces;
+using Desafio.backend.Mottu.Queue.Interfaces;
 
 namespace Desafio.backend.Mottu.Servico
 {
     public class EntregadorService : IEntregadorService
     {
         private readonly IEntregadorRepository _entregadorRepository;
-        private readonly IMapper _mapper; 
+        private readonly IMapper _mapper;
+        private readonly IMensageriaService _mensageriaService;
 
-        public EntregadorService(IEntregadorRepository entregadorRepository)
+        public EntregadorService(IEntregadorRepository entregadorRepository, IMapper mapper, IMensageriaService mensageriaService)
         {
             _entregadorRepository = entregadorRepository;
-        }
-        public EntregadorService(IMapper mapper)
-        {
             _mapper = mapper;
+            _mensageriaService = mensageriaService;
         }
-
 
         public async Task CadastrarEntregadorAsync(EntregadorRequestDTO entregadorRequestDTO)
         {
@@ -53,6 +54,17 @@ namespace Desafio.backend.Mottu.Servico
 
             // Gravar o entregador
             await _entregadorRepository.GravarEntregadorAsync(entregador);
+
+            // Publicar o evento de EntregadorCadastrado
+            var evento = new EntregadorCadastradoEvento
+            {
+                IdEntregador = entregador.IdEntregador,
+                Nome = entregador.Nome,
+                CNPJ = entregador.CNPJ,
+                TipoCNH = entregador.TipoCNH
+            };
+
+            _mensageriaService.PublicarMensagem(evento, "entregador_cadastrado_queue");
         }
 
         public async Task<bool> AtualizarCnhAsync(string entregadorId, string cnhBase64)
@@ -64,6 +76,17 @@ namespace Desafio.backend.Mottu.Servico
 
             // Atualiza a CNH em base64
             entregador.CnhBase64 = cnhBase64;
+
+            // Publicar o evento de EntregadorCadastrado
+            var evento = new EntregadorCadastradoEvento
+            {
+                IdEntregador = entregador.IdEntregador,
+                Nome = entregador.Nome,
+                CNPJ = entregador.CNPJ,
+                TipoCNH = entregador.TipoCNH
+            };
+
+            _mensageriaService.PublicarMensagem(evento, "entregador_atualizado_queue");
 
             // Salva a atualização no banco de dados
             return await _entregadorRepository.AtualizarAsync(entregador);

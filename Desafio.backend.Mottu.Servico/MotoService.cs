@@ -1,33 +1,27 @@
-﻿using Desafio.backend.Mottu.Dominio.Dto;
-using Desafio.backend.Mottu.Dominio.Entidades;
+﻿using Desafio.backend.Mottu.Dominio.Entidades;
 using Desafio.backend.Mottu.Dominio.Interfaces;
-using System.Text;
-using System.Text.Json;
-using RabbitMQ.Client;
+using Desafio.backend.Mottu.Queue.Interfaces;
+using Desafio.backend.Mottu.Dominio.Dto.MotoEvento;
 
 namespace Desafio.backend.Mottu.Servico
 {
     public class MotoService : IMotoService
     {
         private readonly IMotoRepository _motoRepository;
-        private readonly RabbitMQ.Client.IConnection _rabbitConnection;
+        private readonly IMensageriaService _mensageriaService;
+        private readonly ILogService _logService;
 
-        public MotoService(IMotoRepository motoRepository, RabbitMQ.Client.IConnection rabbitConnection)
+        public MotoService(IMotoRepository motoRepository, IMensageriaService mensageriaService, ILogService logService)
         {
             _motoRepository = motoRepository;
-            _rabbitConnection = rabbitConnection;
+            _mensageriaService = mensageriaService;
+            _logService = logService;
         }
 
-        /// <summary>
-        /// Grava uma nova moto no banco de dados através do repositório.
-        /// </summary>
-        /// <param name="moto">Instância da entidade Moto contendo os dados a serem gravados.</param>
-        /// <returns>Task representando a operação assíncrona.</returns>
         public async Task GravarMotoAsync(Moto moto)
         {
             await _motoRepository.GravarMotoAsync(moto);
 
-            // Publicar o evento de MotoCadastrada
             var evento = new MotoCadastradaEvento
             {
                 IdMoto = moto.IdMoto,
@@ -36,69 +30,102 @@ namespace Desafio.backend.Mottu.Servico
                 Placa = moto.Placa
             };
 
-            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(evento));
+            _mensageriaService.PublicarMensagem(evento, "moto_cadastrada_queue");
 
-            using var channel = _rabbitConnection.CreateModel();
-            channel.QueueDeclare(queue: "moto_cadastrada_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
-            channel.BasicPublish(exchange: "", routingKey: "moto_cadastrada_queue", basicProperties: null, body: body);
+            await _logService.LogInfoAsync($"Moto cadastrada: {moto.IdMoto}");
         }
 
-        /// <summary>
-        /// Atualiza os dados de uma moto existente através do repositório.
-        /// </summary>
-        /// <param name="id">Identificador da moto a ser atualizada.</param>
-        /// <param name="motoAtualizada">Instância da entidade Moto contendo os novos dados da moto.</param>
-        /// <returns>Task representando a operação assíncrona.</returns>
         public async Task AtualizarMotoAsync(string id, Moto motoAtualizada)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id) || motoAtualizada == null)
             {
-                throw new ArgumentException("O identificador da moto não pode ser nulo ou vazio.", nameof(id));
-            }
-
-            if (motoAtualizada == null)
-            {
-                throw new ArgumentNullException(nameof(motoAtualizada), "A moto atualizada não pode ser nula.");
+                await _logService.LogErrorAsync($"Erro ao atualizar moto: ID ou dados inválidos.");
+                return;
             }
 
             await _motoRepository.AtualizarMotoAsync(id, motoAtualizada);
+
+            var evento = new MotoAtualizadaEvento
+            {
+                IdMoto = motoAtualizada.IdMoto,
+                Ano = motoAtualizada.Ano,
+                Modelo = motoAtualizada.Modelo,
+                Placa = motoAtualizada.Placa
+            };
+
+            _mensageriaService.PublicarMensagem(evento, "moto_atualizada_queue");
+
+            await _logService.LogInfoAsync($"Moto atualizada: {motoAtualizada.IdMoto}");
         }
+
         public async Task<Moto?> ObterMotoPorIdAsync(string id)
         {
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentException("O identificador da moto não pode ser nulo ou vazio.", nameof(id));
+                await _logService.LogErrorAsync("Erro ao obter moto: ID inválido.");
+                return null;
             }
 
-            return await _motoRepository.ObterMotoPorIdAsync(id);
+            var moto = await _motoRepository.ObterMotoPorIdAsync(id);
+            if (moto == null)
+            {
+                await _logService.LogInfoAsync($"Moto não encontrada: {id}");
+            }
+
+            return moto;
         }
+
         public async Task<IEnumerable<Moto>> ConsultarMotosAsync(string? placa = null)
         {
-            return await _motoRepository.ConsultarMotosAsync(placa);
+            var motos = await _motoRepository.ConsultarMotosAsync(placa);
+            await _logService.LogInfoAsync("Consulta de motos realizada.");
+            return motos;
         }
+
         public async Task AtualizarPlacaAsync(string id, string novaPlaca)
         {
             var motoExistente = await _motoRepository.ObterMotoPorIdAsync(id);
             if (motoExistente == null)
             {
-                throw new KeyNotFoundException("Moto não encontrada.");
+                await _logService.LogErrorAsync($"Erro ao atualizar placa: Moto não encontrada. ID: {id}");
+                return;
             }
 
             motoExistente.Placa = novaPlaca;
-
             await _motoRepository.AtualizarMotoAsync(id, motoExistente);
+
+            await _logService.LogInfoAsync($"Placa da moto atualizada: {motoExistente.IdMoto}");
         }
+
         public async Task RemoverMotoAsync(string id)
         {
-            // Verificar se a moto tem registros de locação
             var temLocacoes = await _motoRepository.VerificarLocacoesAsync(id);
             if (temLocacoes)
             {
-                throw new InvalidOperationException("Não é possível remover a moto. Existem registros de locação associados.");
+                await _logService.LogErrorAsync($"Erro ao remover moto: Existem locações associadas. ID: {id}");
+                return;
             }
 
-            // Remover a moto
+            var moto = await _motoRepository.ObterMotoPorIdAsync(id);
+            if (moto == null)
+            {
+                await _logService.LogInfoAsync($"Moto não encontrada para remoção. ID: {id}");
+                return;
+            }
+
             await _motoRepository.RemoverMotoAsync(id);
+
+            var evento = new MotoRemovidaEvento
+            {
+                IdMoto = moto.IdMoto,
+                Ano = moto.Ano,
+                Modelo = moto.Modelo,
+                Placa = moto.Placa
+            };
+
+            _mensageriaService.PublicarMensagem(evento, "moto_removida_queue");
+
+            await _logService.LogInfoAsync($"Moto removida: {moto.IdMoto}");
         }
     }
 }

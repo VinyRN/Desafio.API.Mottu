@@ -10,6 +10,10 @@ services:
       - "8081:8081"
     depends_on:
       - rabbitmq
+      - elasticsearch
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
 
   rabbitmq:
     image: "rabbitmq:management"
@@ -19,3 +23,12 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"

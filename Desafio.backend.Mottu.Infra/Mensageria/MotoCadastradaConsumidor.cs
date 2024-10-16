@@ -1,4 +1,4 @@
-﻿using Desafio.backend.Mottu.Dominio.Dto;
+﻿using Desafio.backend.Mottu.Dominio.Dto.MotoEvento;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using RabbitMQ.Client;
