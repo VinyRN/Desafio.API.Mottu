@@ -1,17 +1,22 @@
-﻿using System;
-using System.Threading.Tasks;
-using Desafio.backend.Mottu.Dominio.Interfaces;
+﻿using Desafio.backend.Mottu.Dominio.Interfaces;
 using Desafio.backend.Mottu.Dominio.Entidades;
+using Desafio.backend.Mottu.Queue.Interfaces;
+using Desafio.backend.Mottu.Servico;
+using Desafio.backend.Mottu.Dominio.Dto.LocacaoEvento;
 
 public class LocacaoService : ILocacaoService
 {
     private readonly IEntregadorRepository _entregadorRepository;
     private readonly IMotoRepository _motoRepository;
+    private readonly IMensageriaService _mensageriaService;
+    private readonly ILogService _logService;
 
-    public LocacaoService(IEntregadorRepository entregadorRepository, IMotoRepository motoRepository)
+    public LocacaoService(IEntregadorRepository entregadorRepository, IMotoRepository motoRepository, IMensageriaService mensageriaService, ILogService logService)
     {
         _entregadorRepository = entregadorRepository;
         _motoRepository = motoRepository;
+        _mensageriaService = mensageriaService;
+        _logService = logService;
     }
 
     public async Task<string> AlugarMotoAsync(string entregadorId, string motoId, PlanoLocacao plano)
@@ -20,14 +25,15 @@ public class LocacaoService : ILocacaoService
         var entregador = await _entregadorRepository.ObterPorIdAsync(entregadorId);
         if (entregador == null || !entregador.TipoCNH.Contains("A"))
         {
-            throw new Exception("Somente entregadores habilitados na categoria A podem efetuar uma locação.");
+            await _logService.LogErrorAsync("Erro ao alugar moto: Somente entregadores habilitados na categoria A podem efetuar uma locação.");
+            return null;
         }
 
         // Configuração das datas
         var dataCriacao = DateTime.UtcNow;
         var dataInicio = dataCriacao.AddDays(1);  // A locação começa no dia seguinte à criação
         var dataTermino = dataInicio.AddDays((int)plano);
-        var previsaoTermino = dataTermino.AddDays(3); // Exemplo de previsão de término (ajustável conforme necessidade)
+        var previsaoTermino = dataTermino.AddDays(3);
 
         // Calcular o valor da locação com base no plano
         var valorTotal = CalcularValorLocacao(plano);
@@ -46,7 +52,22 @@ public class LocacaoService : ILocacaoService
             ValorTotal = valorTotal
         };
 
-        // (Aqui você adicionaria o código para salvar a locação no banco de dados)
+        // Salvar a locação (simulação de persistência)
+
+        // Publicar evento de locação criada
+        var evento = new LocacaoCriadaEvento
+        {
+            IdLocacao = locacao.IdLocacao,
+            EntregadorId = locacao.EntregadorId,
+            IdMoto = locacao.IdMoto,
+            DataInicio = locacao.DataInicio,
+            DataTermino = locacao.DataTermino,
+            Plano = locacao.Plano,
+            ValorTotal = locacao.ValorTotal
+        };
+
+        _mensageriaService.PublicarMensagem(evento, "locacao_criada_queue");
+        await _logService.LogInfoAsync($"Locação criada: {locacao.IdLocacao}");
 
         return locacao.IdLocacao; // Retorna o ID da locação criada
     }
@@ -65,30 +86,30 @@ public class LocacaoService : ILocacaoService
         };
     }
 
-    // Novo método para calcular o valor da locação com base na data de devolução
     public decimal CalcularValorTotalComDevolucao(Locacao locacao, DateTime dataDevolucao)
     {
-        decimal valorTotal = CalcularValorLocacao(locacao.Plano); // Aqui está a correção
+        decimal valorTotal = CalcularValorLocacao(locacao.Plano);
 
         if (dataDevolucao < locacao.PrevisaoTermino)
         {
-            // Se a devolução for antes da previsão de término, aplicar multa
             int diasNaoEfetivados = (locacao.PrevisaoTermino - dataDevolucao).Days;
             decimal multa = CalcularMulta(locacao.Plano, diasNaoEfetivados);
             valorTotal += multa;
+
+            _logService.LogInfoAsync($"Multa aplicada para locação: {locacao.IdLocacao} com {diasNaoEfetivados} dias não efetivados.").Wait();
         }
         else if (dataDevolucao > locacao.PrevisaoTermino)
         {
-            // Se a devolução for após a previsão de término, cobrar diárias extras
             int diasAdicionais = (dataDevolucao - locacao.PrevisaoTermino).Days;
-            decimal valorAdicional = diasAdicionais * 50m;  // R$50,00 por dia adicional
+            decimal valorAdicional = diasAdicionais * 50m;
             valorTotal += valorAdicional;
+
+            _logService.LogInfoAsync($"Diárias adicionais cobradas para locação: {locacao.IdLocacao} com {diasAdicionais} dias adicionais.").Wait();
         }
 
         return valorTotal;
     }
 
-    // Método auxiliar para calcular a multa com base no plano
     private decimal CalcularMulta(PlanoLocacao plano, int diasNaoEfetivados)
     {
         decimal valorMulta = 0;
@@ -96,15 +117,10 @@ public class LocacaoService : ILocacaoService
         switch (plano)
         {
             case PlanoLocacao.Plano7Dias:
-                valorMulta = 30m * diasNaoEfetivados * 0.20m;  // 20% de multa
+                valorMulta = 30m * diasNaoEfetivados * 0.20m;
                 break;
             case PlanoLocacao.Plano15Dias:
-                valorMulta = 28m * diasNaoEfetivados * 0.40m;  // 40% de multa
-                break;
-            case PlanoLocacao.Plano30Dias:
-            case PlanoLocacao.Plano45Dias:
-            case PlanoLocacao.Plano50Dias:
-                // Sem multas específicas para esses planos
+                valorMulta = 28m * diasNaoEfetivados * 0.40m;
                 break;
         }
 
