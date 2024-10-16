@@ -6,8 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "4000:80"  # Mapeando a porta 4000 do host para a porta 80 do contêiner
+    networks:
+      - desafiobackendmottu_network
     depends_on:
       - rabbitmq
       - elasticsearch
@@ -20,9 +21,12 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - desafiobackendmottu_network
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
@@ -32,3 +36,9 @@ services:
     ports:
       - "9200:9200"
       - "9300:9300"
+    networks:
+      - desafiobackendmottu_network
+
+networks:
+  desafiobackendmottu_network:
+    driver: bridge

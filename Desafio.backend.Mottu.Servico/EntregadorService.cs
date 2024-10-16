@@ -12,9 +12,9 @@ namespace Desafio.backend.Mottu.Servico
         private readonly IEntregadorRepository _entregadorRepository;
         private readonly IMapper _mapper;
         private readonly IMensageriaService _mensageriaService;
-        private readonly ILogService _logService;
+        private readonly IElasticLogService _logService;
 
-        public EntregadorService(IEntregadorRepository entregadorRepository, IMapper mapper, IMensageriaService mensageriaService, ILogService logService)
+        public EntregadorService(IEntregadorRepository entregadorRepository, IMapper mapper, IMensageriaService mensageriaService, IElasticLogService logService)
         {
             _entregadorRepository = entregadorRepository;
             _mapper = mapper;

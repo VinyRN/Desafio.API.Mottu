@@ -9,9 +9,9 @@ public class LocacaoService : ILocacaoService
     private readonly IEntregadorRepository _entregadorRepository;
     private readonly IMotoRepository _motoRepository;
     private readonly IMensageriaService _mensageriaService;
-    private readonly ILogService _logService;
+    private readonly IElasticLogService _logService;
 
-    public LocacaoService(IEntregadorRepository entregadorRepository, IMotoRepository motoRepository, IMensageriaService mensageriaService, ILogService logService)
+    public LocacaoService(IEntregadorRepository entregadorRepository, IMotoRepository motoRepository, IMensageriaService mensageriaService, IElasticLogService logService)
     {
         _entregadorRepository = entregadorRepository;
         _motoRepository = motoRepository;

@@ -2,6 +2,7 @@
 using Desafio.backend.Mottu.Dominio.Interfaces;
 using Desafio.backend.Mottu.Queue.Interfaces;
 using Desafio.backend.Mottu.Dominio.Dto.MotoEvento;
+using Amazon.Runtime;
 
 namespace Desafio.backend.Mottu.Servico
 {
@@ -9,13 +10,16 @@ namespace Desafio.backend.Mottu.Servico
     {
         private readonly IMotoRepository _motoRepository;
         private readonly IMensageriaService _mensageriaService;
-        private readonly ILogService _logService;
+        private readonly IElasticLogService _logService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public MotoService(IMotoRepository motoRepository, IMensageriaService mensageriaService, ILogService logService)
+
+        public MotoService(IMotoRepository motoRepository, IMensageriaService mensageriaService, IElasticLogService logService, IHttpClientFactory httpClientFactory)
         {
             _motoRepository = motoRepository;
             _mensageriaService = mensageriaService;
             _logService = logService;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task GravarMotoAsync(Moto moto)

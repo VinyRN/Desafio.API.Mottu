@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desafio.backend.Mottu", "Desafio.backend.Mottu\Desafio.backend.Mottu.csproj", "{BBC91DCB-C997-4014-818E-3677672EFF03}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2AB13BF8-AE18-46F8-8DB4-77F44EFFECC2} = {2AB13BF8-AE18-46F8-8DB4-77F44EFFECC2}
+		{5625BD67-68D3-4752-B76C-54CC5EE601A0} = {5625BD67-68D3-4752-B76C-54CC5EE601A0}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desafio.backend.Mottu.Infraestrutura", "Desafio.backend.Mottu.Infra\Desafio.backend.Mottu.Infraestrutura.csproj", "{F0D55076-11C3-49A4-9312-9B03175E60C1}"
 EndProject
@@ -13,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desafio.backend.Mottu.Servi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desafio.backend.Mottu.Mappings", "Desafio.backend.Mottu.Mappings\Desafio.backend.Mottu.Mappings.csproj", "{2AB13BF8-AE18-46F8-8DB4-77F44EFFECC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Desafio.backend.Mottu.Queue", "Desafio.backend.Mottu.Queue\Desafio.backend.Mottu.Queue.csproj", "{5625BD67-68D3-4752-B76C-54CC5EE601A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Desafio.backend.Mottu.Queue", "Desafio.backend.Mottu.Queue\Desafio.backend.Mottu.Queue.csproj", "{5625BD67-68D3-4752-B76C-54CC5EE601A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,22 +1,17 @@
-﻿using System.Text;
+﻿using Desafio.backend.Mottu.Dominio.Interfaces;
+using System.Text;
 using System.Text.Json;
 
 namespace Desafio.backend.Mottu.Servico
 {
-    public interface ILogService
-    {
-        Task LogInfoAsync(string message);
-        Task LogErrorAsync(string message);
-    }
-
-    public class ElasticLogService : ILogService
+    public class ElasticLogService : IElasticLogService
     {
         private readonly HttpClient _httpClient;
         private readonly string _elasticUrl;
 
-        public ElasticLogService(HttpClient httpClient, string elasticUrl)
+        public ElasticLogService(IHttpClientFactory httpClientFactory, string elasticUrl)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient();
             _elasticUrl = elasticUrl;
         }
 
@@ -40,7 +35,17 @@ namespace Desafio.backend.Mottu.Servico
             };
 
             var content = new StringContent(JsonSerializer.Serialize(logEntry), Encoding.UTF8, "application/json");
-            await _httpClient.PostAsync($"{_elasticUrl}/logs/_doc", content);
+
+            // Use diretamente a instância de _httpClient injetada
+            var response = await _httpClient.PostAsync($"{_elasticUrl}/logs/_doc", content);
+
+            // Verificar se a resposta foi bem-sucedida
+            if (!response.IsSuccessStatusCode)
+            {
+                // Tratamento de erro: ler a resposta para fins de diagnóstico
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Erro ao enviar log para o Elasticsearch. Status Code: {response.StatusCode}. Resposta: {responseContent}");
+            }
         }
     }
 }

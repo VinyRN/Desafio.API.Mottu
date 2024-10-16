@@ -1,11 +1,11 @@
 using Desafio.backend.Mottu.Dominio.Interfaces;
 using Desafio.backend.Mottu.Infraestrutura.Mensageria;
 using Desafio.backend.Mottu.Infraestrutura.Repositorios;
+using Desafio.backend.Mottu.Queue.Interfaces;
+using Desafio.backend.Mottu.Queue;
 using Desafio.backend.Mottu.Servico;
 using MongoDB.Driver;
 using RabbitMQ.Client;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +14,22 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Registrar o HttpClient
+builder.Services.AddHttpClient();
+
+// Obter as configurações do RabbitMQ
+var rabbitMQConfig = builder.Configuration.GetSection("RabbitMQ");
+
+// Configurar o ConnectionFactory usando as configurações
 builder.Services.AddSingleton<IConnection>(sp =>
 {
-    var factory = new ConnectionFactory() { HostName = "localhost", Port = 5672 };
+    var factory = new ConnectionFactory()
+    {
+        HostName = rabbitMQConfig["HostName"],
+        Port = int.Parse(rabbitMQConfig["Port"]),
+        UserName = rabbitMQConfig["UserName"],
+        Password = rabbitMQConfig["Password"]
+    };
     return factory.CreateConnection();
 });
 
@@ -53,6 +66,16 @@ builder.Services.AddSingleton(sp =>
 // Injeção de dependências para os repositórios e serviços
 builder.Services.AddScoped<IMotoRepository, MotoRepository>();
 builder.Services.AddScoped<IMotoService, MotoService>();
+builder.Services.AddScoped<IMensageriaService, MensageriaService>();
+
+// Obter a configuração
+var configuration = builder.Configuration;
+builder.Services.AddScoped<IElasticLogService>(sp =>
+{
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var elasticUrl = configuration["ElasticConfiguration:Url"]; // Obter a URL da configuração
+    return new ElasticLogService(httpClientFactory, elasticUrl);
+});
 
 // Adicionando o consumidor como serviço hospedado
 builder.Services.AddHostedService<MotoCadastradaConsumidor>();
